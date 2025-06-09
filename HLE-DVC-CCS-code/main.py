@@ -16,12 +16,18 @@ M: machine number， 修改M需要修改 PCS_group.py
 n: subvector length
 N: vector length
 在本实验中，批量打开（在拥有 partial Proo的情况下）单机聚合的代码与aSVC一致，因此可以通过运行下面的代码测算时间开销
-t https://github.com/sunblaze-ucb/eVSS
+https://github.com/sunblaze-ucb/eVSS
 在本实验中，多机聚合的代码与Hyperproofs一致，因此可以通过运行下面的代码测算时间开销
+https://github.com/hyperproofs/hyperproofs-go.git
+
+In this experiment, the single-machine aggregation for batched openings (given partial proofs) follows the same implementation as aSVC. Therefore, the runtime overhead can be evaluated by executing the following code:
+https://github.com/sunblaze-ucb/eVSS
+
+Similarly, the multi-machine aggregation in our experiment is consistent with the implementation of Hyperproofs. Thus, the corresponding runtime can be measured by running the following code:
 https://github.com/hyperproofs/hyperproofs-go.git
 '''
 
-#
+# rho is fixed to 4 and M is fixed to 16, once they are changed, the genPartialProof() needs to be updated
 rho = 4
 M = 16
 n = 4
