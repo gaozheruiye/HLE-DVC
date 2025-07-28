@@ -123,7 +123,7 @@ class Hybrid_mul_polynomial_commitment_scheme:
             index_k = self.binary_list[k]
             # self.coefficients size: (M,n)
             # self.coefficients[k] = univariate_lagrange_interpolation_coefficients(self.omega_n_s, self.subvector[k], self.modulus)[::-1] # 老版本使用拉格朗日插值，新版本使用fft
-            self.coefficients[k] = fft(self.subvector[k], modulus, self.omega_n_s[1], inv=True)
+            self.coefficients[k] = fft(self.subvector[k], self.modulus, self.omega_n_s[1], inv=True)
             # 注意！！！！这里coefficients[k][0]是常数项，从小到大排序
             C_v_k = multiply(G1,0)
             for i in range(self.n):

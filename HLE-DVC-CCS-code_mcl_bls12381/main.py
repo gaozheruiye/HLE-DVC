@@ -1,7 +1,15 @@
 import mcl
 from mcl import *
 import mcl.hook
+import mcl_bls2381PCS_group
+from mcl_bls2381PCS_group import AggregateTest
+import random
+import numpy as np
 
+
+from utils import gen_variable_power_list, gen_binary_list, gen_rho_plus_1_dim_array, get_power_cycle
+from Lagrange_interpolation import univariate_lagrange_interpolation_coefficients
+from poly_utils import PrimeField
 BN254 = 0
 BLS12_381 = 5
 MCLBN_FR_UNIT_SIZE = 4
@@ -28,78 +36,37 @@ G1_STR = b"1 3685416753713387016781088315183077757961620795782546409894578378688
 G2_STR = b"1 352701069587466618187139116011060144890029952792775240219908644239793785735715026873347600343865175952761926303160 3059144344244213709971259814753781636986470325476647558659373206291635324768958432433509563104347017837885763365758 1985150602287291935568054521177171638300868978215655730859378665066344726373823718423869104263333984641494340347905 927553665492332455747201965776037880757740193453592970025027978793976877002675564980949289727957565575433344219582"
 
 
-# fr1 = mcl.Fr()
-# fr1.setByCSPRNG()
-
-
-a1=mcl.Fr()
-a1.setInt(3)
-print(a1+a1)
-print(a1*a1)
-
-a2=mcl.Fr()
-a2.setStr(b"9")
-
-
-g1_1 = mcl.G1()
-g1_1.setStr(G1_STR)
-print(g1_1)
-print(mcl.G1())
-
-g1_2 = mcl.G1()
-g1_2.setStr(G1_STR)
-
-g1_1=(g1_1*a1)*a1
-g1_2=g1_2*a2
-
-
-g2 = mcl.G2()
-g2.setStr(G2_STR)
-
-p1=mcl.GT.pairing(g1_1 , g2 )
-p2=mcl.GT.pairing(g1_2 , g2 )
-print(p1==p2)
-
-p3 = p1 * p2
-
-print("p3",p3) # 9 + 9
-
-a3=mcl.Fr()
-a3.setStr(b"18")
-
-
-p = mcl.G1()
-p.setStr(G1_STR)
-
-q = mcl.G2()
-q.setStr(G2_STR)
-q=q*a3
-
-p4=mcl.GT.pairing(p , q)
-
-print("p4",p4)
-
-
-# print(p1)
-
-# p1 = mcl.G1()
-# p1.setStr(G1_STR)
-
-# p2 = mcl.G2()
-# p2.setStr(G2_STR)
-
-# a2=mcl.Fr()
-# a2.setStr(b"3")
-
-# g1 = g1* a1
-# g1 = g1* a1
-
-
-
-# # fr2 = Fr()
-# # fr2.setByCSPRNG()
-
-# gt1 =
-# gt2 = mcl.GT.pairing(p1 , p2 )
-# print(gt1)
-# print(gt1==gt1)
+rho = 4
+M = 16
+n = 4
+N = M * n
+modulus = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+f = PrimeField(modulus)
+#单位根
+omega_n = f.exp(7, (modulus-1)//n)
+omega_n_s = get_power_cycle(omega_n, modulus)
+# print ("omega_n_s:",omega_n_s)
+# vector = [random.randint(1, modulus) for _ in range(N)]
+vector = [i+1 for i in range(N)]
+# vector = [i+1 for i in range(16)]
+# print(vector_long)
+example = mcl_bls2381PCS_group.Hybrid_mul_polynomial_commitment_scheme(M, n, N, rho,omega_n_s, modulus, vector)
+example.dist_commit()
+print("-----------------------------------------------generate partial proofs----------------------------------------")
+example.genAux()
+partialProof_P_0 = example.genPartialProof()
+# print("-----------------------------------------------generate single proof----------------------------------------")
+k = 0
+d = k # d和k差不多
+i = 1
+value, pi_d_rho_i = example.prove(k,i)
+value = vector[k*n+i]
+print("value:", value)
+example.verify(partialProof_P_0, pi_d_rho_i, value,k,i)
+print("-----------------------------------------------generate Batch proof----------------------------------------")
+I=[0,1]
+value_list, pi_d_rho_I_batch = example.BatchProve(k,I)
+print("pi_d_rho_I_batch", pi_d_rho_I_batch)
+example.BatchVerify(partialProof_P_0, pi_d_rho_I_batch, value_list, d, I)
+print("-----------------------------------------------Aggregate proof----------------------------------------")
+AggregateTest(example,d, partialProof_P_0)
