@@ -1,4 +1,4 @@
-# The implementation of a distributed verifiable database based on the HLE-DVC
+# The implementation of the HLE-DVC
 USENIX 2026
 The project can run on both Windows and Linux environments (Ubuntu version 20.04 or higher).
 
