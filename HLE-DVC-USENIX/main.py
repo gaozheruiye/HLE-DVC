@@ -38,6 +38,9 @@ G2_STR = b"1 3527010695874666181871391160110601448900299527927752402199086442397
 
 rho = 4
 M = pow(2,rho)
+# 调整M后需要调整genPartialProof()函数或者使用example.genAllPartialProof()然后把对应machine的取出来
+
+# After adjusting M, you need to either modify the genPartialProof() function accordingly, or use example.genAllPartialProof() and extract the one corresponding to the target machine.
 n = 32
 N = M * n
 modulus = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
@@ -55,6 +58,7 @@ example.dist_commit()
 print("-----------------------------------------------generate partial proofs----------------------------------------")
 example.genAux()
 partialProof_P_0 = example.genPartialProof()
+example.genAllPartialProof()
 print("-----------------------------------------------generate single proof----------------------------------------")
 k = 0
 d = k # d和k差不多
@@ -63,6 +67,7 @@ value, pi_d_rho_i = example.prove(k,i)
 value = vector[k*n+i]
 print("value:", value)
 example.verify(partialProof_P_0, pi_d_rho_i, value,k,i)
+example.ProveAll()
 print("-----------------------------------------------generate Batch proof----------------------------------------")
 I=[0,1]
 value_list, pi_d_rho_I_batch = example.BatchProve(k,I)
