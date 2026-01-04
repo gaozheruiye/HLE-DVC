@@ -26,4 +26,13 @@ modulus: Modulus of the finite field. This parameter can be modified if the BLS1
 |  algorithms of HLE-DVC   | functions in the code  |
 |  ----  | ----  |
 | Setup  | example = mcl_bls2381PCS_group.Hybrid_mul_polynomial_commitment_scheme(M, n, N, rho, omega_n_s, modulus, vector) |
-| 单元格  | 单元格 |
+| DistCommit  | example.dist_commit() |
+| genAux  | example.genAux() |
+| GenPartialProof  | partialProof_P_0 = example.genPartialProof() |
+| GenAllPartialProof  | AllPartialProof = example.genAllPartialProof() |
+| Prove  | value, pi_d_rho_i = example.prove(k,i) <br> k is the machine index and i is the elment index in the subvector|
+| Verify  | example.verify(partialProof_P_0, pi_d_rho_i, value,k,i)    |
+| ProveAll  | We measured the time overhead of ProveAll using https://github.com/sunblaze-ucb/eVSS |
+| BatchProve  | value_list, pi_d_rho_I_batch = example.BatchProve(k,I)  <br> I is the index set of the subvector |
+| Aggregate  | AggregateTest(example,d, partialProof_P_0)  |
+| genAux  | 单元格 |
