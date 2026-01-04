@@ -38,7 +38,7 @@ modulus: Modulus of the finite field. This parameter can be modified if the BLS1
 | UpdComProof  | UpdateTest(example,u=0,j=0,delta_v=5) |
 
 
-### A small demo
+### A small demo: How to generate a single position proof
 
 ```python
 n = 32
