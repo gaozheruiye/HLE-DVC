@@ -25,7 +25,7 @@ modulus: Modulus of the finite field. This parameter can be modified if the BLS1
 
 |  algorithms of HLE-DVC   | functions in the code  |
 |  ----  | ----  |
-| Setup  | example = mcl_bls2381PCS_group.Hybrid_mul_polynomial_commitment_scheme(M, n, N, rho, omega_n_s, modulus, vector) |
+| Setup  | example = mcl_bls2381PCS_group.Hybrid_mul_polynomial_commitment_scheme(M, n, N, rho, omega_n_s, modulus, vector) <br>  omega_n_s is the multiplicative subgroup of the finite field|
 | DistCommit  | example.dist_commit() |
 | genAux  | example.genAux() |
 | GenPartialProof  | partialProof_P_0 = example.genPartialProof() |
@@ -36,3 +36,43 @@ modulus: Modulus of the finite field. This parameter can be modified if the BLS1
 | BatchProve  | value_list, pi_d_rho_I_batch = example.BatchProve(k,I)  <br> I is the index set of the subvector |
 | Aggregate  | The whole process of Aggregation (including verification) is presented in AggregateTest(example,d, partialProof_P_0)  |
 | UpdComProof  | UpdateTest(example,u=0,j=0,delta_v=5) |
+
+
+### A small demo
+
+```python
+n = 32
+N = M * n
+
+modulus = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
+f = PrimeField(modulus)
+
+omega_n = f.exp(7, (modulus - 1) // n)
+omega_n_s = get_power_cycle(omega_n, modulus)
+
+vector = [random.randint(1, modulus) for i in range(N)]
+
+example = mcl_bls2381PCS_group.Hybrid_mul_polynomial_commitment_scheme(
+    M, n, N, rho, omega_n_s, modulus, vector
+)
+
+example.dist_commit()
+
+print("-----------------------------------------------generate partial proofs----------------------------------------")
+example.genAux()
+
+AllPartialProof = example.genAllPartialProof()
+partialProof_P_0 = AllPartialProof[0]
+
+print("-----------------------------------------------generate single proof----------------------------------------")
+k = 0
+i = 1
+
+value, pi_d_rho_i = example.prove(k, i)
+value = vector[k * n + i]
+
+print("value:", value)
+example.verify(partialProof_P_0, pi_d_rho_i, value, k, i)
+
+
+
