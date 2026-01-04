@@ -119,7 +119,7 @@ Table 6 compares HLE-DVC with KZG-DPCS-DVC, Hyperproofs, and Hyperproofs-DVC.
 
 - **Hyperproofs-DVC**:
   - Hyperproofs-DVC is a variant proposed in the *extension* section of the appendix and will be discussed further in future work.
-  - The algorithms and time overheads of `DistCommit`, `GenAux`, and `GenPartialProof` are **identical to those of HLE-DVC**, and only the `Setup` phase differs from HLE-DVC.
+  - The algorithms and time overheads of `DistCommit`, `GenAux`, and `GenPartialProof` are **identical to those of HLE-DVC**.
   - The `Verify` algorithm has the same cost as Hyperproofs.
   - The time overhead of `ProveAll` is computed as:
     ```
