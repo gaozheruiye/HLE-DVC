@@ -73,6 +73,60 @@ value = vector[k * n + i]
 
 print("value:", value)
 example.verify(partialProof_P_0, pi_d_rho_i, value, k, i)
+```
 
+## Reproducing Experimental Results (Tables 4, 5, and 6)
 
+This section provides instructions on how to reproduce the results reported in Tables 4, 5, and 6 of the Experiments section in the paper. We clarify which results are obtained via theoretical analysis and which are measured empirically using the provided code.
+
+### Table 4: Storage Overhead of the HLE-DVC Scheme
+
+The results in Table 4 report the **storage overhead** of the HLE-DVC scheme.  
+These values are obtained via **theoretical calculation**, based on the construction of HLE-DVC and the sizes of group elements and proofs.  
+No additional code execution is required to reproduce Table 4.
+
+---
+
+### Table 5: Time Overhead of the HLE-DVC Scheme
+
+Table 5 reports the **time overhead** of HLE-DVC for different algorithms.
+
+To reproduce the results in Table 5, set the parameters in the code as follows:
+- `n = 2^30`
+- `rho = 4`
+
+The time overhead of **ProveAll** is measured using the implementation from the following repository:
+- https://github.com/sunblaze-ucb/eVSS
+
+The reported values in Table 5 are obtained by running the corresponding algorithms with the above settings and averaging over multiple runs.
+
+---
+
+### Table 6: Comparison with Other Schemes
+
+Table 6 compares HLE-DVC with KZG-DPCS-DVC, Hyperproofs, and Hyperproofs-DVC.
+
+- **Storage size** results in Table 6 are obtained via **theoretical analysis** for all schemes.
+
+- **KZG-DPCS-DVC**:
+  - The time overheads are obtained through **theoretical analysis**, based on the costs of the underlying cryptographic operations.
+
+- **Hyperproofs**:
+  - The time overheads are obtained by setting:
+    - `n = 1`
+    - `rho = 34`
+  - As pointed out in Appendix E.3 of the paper, Hyperproofs is essentially equivalent to the **MLE version of HLE-DVC** under these parameters.
+
+- **Hyperproofs-DVC**:
+  - Hyperproofs-DVC is a variant proposed in the *extension* section of the appendix and will be discussed further in future work.
+  - The algorithms and time overheads of `DistCommit`, `GenAux`, and `GenPartialProof` are **identical to those of HLE-DVC**, and only the `Setup` phase differs from HLE-DVC.
+  - The `Verify` algorithm has the same cost as Hyperproofs.
+  - The time overhead of `ProveAll` is computed as:
+    ```
+    (Hyperproofs ProveAll time) / M
+    + time of GenAux
+    + time of GenAllPartialProof
+    ```
+
+This combination of theoretical analysis and experimental measurement yields the results reported in Table 6.
 
