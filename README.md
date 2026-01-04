@@ -34,5 +34,5 @@ modulus: Modulus of the finite field. This parameter can be modified if the BLS1
 | Verify  | example.verify(partialProof_P_0, pi_d_rho_i, value,k,i)    |
 | ProveAll  | We measured the time overhead of ProveAll using https://github.com/sunblaze-ucb/eVSS |
 | BatchProve  | value_list, pi_d_rho_I_batch = example.BatchProve(k,I)  <br> I is the index set of the subvector |
-| Aggregate  | AggregateTest(example,d, partialProof_P_0)  |
-| genAux  | 单元格 |
+| Aggregate  | The whole process of Aggregation (including verification) is presented in AggregateTest(example,d, partialProof_P_0)  |
+| UpdComProof  | UpdateTest(example,u=0,j=0,delta_v=5) |
