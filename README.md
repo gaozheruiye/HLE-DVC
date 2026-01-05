@@ -15,9 +15,9 @@ Most of the remaining files are utility modules used to support polynomial opera
   
 The implementation is organized as follows:
 
-* [`HLE-DVC-USENIX/`](HLE-DVC-USENIX): Contains the full source code of our implementation.
-* [`HLE-DVC-USENIX/`](HLE-DVC-USENIX)
-* [`src/`](src): Contains the full source code of our implementation.  
+* [`HLE-DVC-USENIX/`](HLE-DVC-USENIX): implement most of the algorithms in HLE-DVC..
+* [`AggCross/`](AggCross):  benchmark the performance of the cross-subvector aggregation in HLE-DVC.
+* [`HLE-DVC-USENIX/`](src): Contains the full source code of our implementation.  
 * [`src/subprotocols/`](src/subprotocols): Implements the LogUp-based lookup protocol.  
 * [`src/snark/`](src/snark): Implements a single-prover version of DFS.  
 * [`src/mpi_snark/`](src/mpi_snark): Provides a distributed DFS implementation for public delegation using the MPI interface.  
