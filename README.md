@@ -99,6 +99,8 @@ To reproduce the results in Table 5, set the parameters in the code as follows:
 The time overhead of **ProveAll** is measured using the implementation from the following repository:
 - https://github.com/sunblaze-ucb/eVSS
 
+The time overhead of **Agg(Cross)** is measured using the implementation in the folder "AggCross".
+
 The reported values in Table 5 are obtained by running the corresponding algorithms with the above settings and averaging over multiple runs.
 
 ---
