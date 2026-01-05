@@ -3,27 +3,27 @@ USENIX 2026
 
 The project can run on both Windows and Linux environments (Ubuntu version 20.04 or higher).
 
+We evaluate the performance of the HLE-DVC scheme
+using mcl libaray (Go language) on a Tencent cloud server
+(16-core CPU, 64 GB memory, 5 Mbps bandwidth).
+This implementation has no specific hardware requirements. However, larger-scale experiments require more memory.
 
 
 
 
 
-This artifact provides the implementation of HLE-DVC based on the Python binding of the mcl library, which is originally implemented in Go. While the underlying library is written in Go, our project itself is implemented in Python.
+This artifact provides the implementation of HLE-DVC based on the Python binding of the mcl library, 
+which is originally implemented in Go. While the underlying library is written in Go, our project itself is implemented in Python.
 
 The main.py in this folder can be executed directly, while the core code and key functions are implemented in the PCS_group.py.
 Most of the remaining files are utility modules used to support polynomial operations.
   
 The implementation is organized as follows:
 
-* [`HLE-DVC-USENIX/`](HLE-DVC-USENIX): implement most of the algorithms in HLE-DVC..
+* [`HLE-DVC-USENIX/`](HLE-DVC-USENIX): implement most of the algorithms in HLE-DVC.
 * [`AggCross/`](AggCross):  benchmark the performance of the cross-subvector aggregation in HLE-DVC.
-* [`HLE-DVC-USENIX/`](src): Contains the full source code of our implementation.  
-* [`src/subprotocols/`](src/subprotocols): Implements the LogUp-based lookup protocol.  
-* [`src/snark/`](src/snark): Implements a single-prover version of DFS.  
-* [`src/mpi_snark/`](src/mpi_snark): Provides a distributed DFS implementation for public delegation using the MPI interface.  
-* [`src/mpc/`](src/mpc): Includes support for two secret-sharing schemes: additive secret sharing and replicated secret sharing.  
-* [`src/mpc_snark/`](src/mpc_snark): Implements DFS for private delegation, combining distributed computation and MPC. Each party in this setup can consist of multiple nodes.  
-* [`examples`](examples)/: Contains test and benchmarking code, along with SLURM scripts to facilitate execution in distributed environments.  
+* [`HLE-DVC-USENIX/main.py`](HLE-DVC-USENIX/main.py): implement the complete proof generation process of HLE-DVC. Moreover, it includes update and single-subvector aggregation.
+* [`HLE-DVC-USENIX/`](HLE-DVC-USENIX): implement most of the algorithms in HLE-DVC.
 
 
 **Configurable Parameters**
