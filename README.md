@@ -23,8 +23,8 @@ The implementation is organized as follows:
 * [`HLE-DVC-USENIX/`](HLE-DVC-USENIX): Implements most of the algorithms in HLE-DVC.
 * [`AggCross/`](AggCross):  Benchmarks the performance of the cross-subvector aggregation in HLE-DVC.
 * [`HLE-DVC-USENIX/main.py`](HLE-DVC-USENIX/main.py): An example, which present the complete proof generation process of HLE-DVC. Moreover, it includes update and single-subvector aggregation.
-* [`HLE-DVC-USENIX/mcl_bls2381PCS_group`](HLE-DVC-USENIX/mcl_bls2381PCS_group): Contains implementations of most of the algorithms in HLE-DVC.
-* [`HLE-DVC-USENIX/poly_utils`](HLE-DVC-USENIX/poly_utils) and [`HLE-DVC-USENIX/polynomials`](HLE-DVC-USENIX/polynomials): Supports finite field and polynomial computations.
+* [`HLE-DVC-USENIX/mcl_bls2381PCS_group.py`](HLE-DVC-USENIX/mcl_bls2381PCS_group.py): Contains implementations of most of the algorithms in HLE-DVC.
+* [`HLE-DVC-USENIX/poly_utils.py`](HLE-DVC-USENIX/poly_utils.py) and [`HLE-DVC-USENIX/polynomials.py`](HLE-DVC-USENIX/polynomials.py): Supports finite field and polynomial computations.
 
 
 **Configurable Parameters**
