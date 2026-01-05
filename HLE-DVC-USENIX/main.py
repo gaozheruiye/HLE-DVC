@@ -62,7 +62,7 @@ AllPartialProof = example.genAllPartialProof()
 partialProof_P_0 = AllPartialProof[0]
 print("-----------------------------------------------generate single proof----------------------------------------")
 k = 0
-d = k # d和k差不多
+d = k
 i = 1
 value, pi_d_rho_i = example.prove(k,i)
 value = vector[k*n+i]
