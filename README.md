@@ -1,8 +1,16 @@
 # The implementation of the HLE-DVC
 USENIX 2026
 
-The project can run on both Windows and Linux environments (Ubuntu version 20.04 or higher).
+This artifact accompanies the USENIX Security paper titled “Distributed Vector Commitments and Their Applications”. 
+We introduce a new notion—distributed VC (DVC), which allows multiple machines, 
+each holding only a subvector of the input vector, to collectively commit to the entire vector and generate position proofs in a distributed manner. 
+To the best of our knowledge, there is no prior work on DVCs and no existing work can trivially derive an efficient DVC scheme. We propose the first DVC scheme, HLE-DVC, conduct the experiments and open-source the code.
 
+The artifact provides the experimental data and the source code of the implementation of HLE-DVC for reproducing the experimental results reported in the paper. 
+In particular, the artifact supports reproducing the performance, scalability, and correctness evaluations presented in Sections 5.
+
+
+The project can run on both Windows and Linux environments (Ubuntu version 20.04 or higher).
 We evaluate the performance of the HLE-DVC scheme
 using mcl libaray (Go language) on a Tencent cloud server
 (16-core CPU, 64 GB memory, 5 Mbps bandwidth).
