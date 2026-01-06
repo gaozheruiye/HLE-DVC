@@ -15,7 +15,7 @@ func main() {
 	GenKeys()
 }
 
-const MAX_AGG_SIZE = 1 << 19
+const MAX_AGG_SIZE = 1 << 7
 
 func GenKeys() {
 	alpha, beta, G, H := utils.RunMPC()

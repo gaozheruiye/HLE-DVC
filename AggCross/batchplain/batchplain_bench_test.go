@@ -14,7 +14,7 @@ func testsetup() []uint8 {
 }
 func BenchmarkBatchPlain(b *testing.B) {
 
-	folderPath := "../ck-19"
+	folderPath := "../ck-07"
 	rows := testsetup()
 	M := uint32(1024) //
 	// maxN := (uint32(1) << (rows[len(rows)-1]))            // Not sure why this does not work

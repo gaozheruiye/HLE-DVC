@@ -9,16 +9,17 @@ import (
 )
 
 func testsetup() []uint8 {
-	return []uint8{8, 9, 10, 11, 12, 13, 14, 15, 16, 17}
+	return []uint8{4}
 }
 
 func BenchmarkGIPA(b *testing.B) {
 
-	folderPath := "../ck-19"
+	folderPath := "../ck-07"
 	rows := testsetup()
 	A, B := utils.GenerateData(1 << (rows[len(rows)-1]))
 
 	for _, ell := range rows {
+		fmt.Println(ell)
 		M := uint64(1) << ell
 		ck, _, _ := cm.LoadKeys(M, folderPath)
 		prover, verifier := AssembleProverVerifier(M, &ck, A[:M], B[:M])

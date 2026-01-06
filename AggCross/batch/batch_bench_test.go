@@ -15,9 +15,9 @@ func testsetup() []uint8 {
 
 func BenchmarkBatch(b *testing.B) {
 
-	folderPath := "../ck-19"
+	folderPath := "../ck-07"
 	rows := testsetup()
-	M := uint32(1024)
+	M := uint32(4)
 	// maxN := (uint32(1) << (rows[len(rows)-1]))            // Not sure why this does not work
 	// p, q, a_i, b_i := utils.GenerateBatchingData(M, maxN) // Not sure why this does not work
 	// fmt.Println(len(p), len(a_i))

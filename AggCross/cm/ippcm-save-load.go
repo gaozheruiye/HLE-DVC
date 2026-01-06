@@ -55,7 +55,7 @@ func IPPCMLoad(M uint64, folderPath string) Ck {
 	m = binary.LittleEndian.Uint64(data)
 
 	if M > m {
-		panic("CK Load Error: There is not enough to read")
+		panic(fmt.Errorf("CK Load Error: There is not enough to read: M=%d m=%d", M, m))
 	}
 	ck := Ck{M, make([]mcl.G2, M), make([]mcl.G1, M)}
 
