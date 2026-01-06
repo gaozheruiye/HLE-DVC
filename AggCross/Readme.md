@@ -1,4 +1,4 @@
-This directory implements the cross-subvector aggregation functionality of HLE-DVC.
+This directory implements the cross-subvector aggregation algorithm of HLE-DVC.
 The implementation in this directory is a modified version of Hyperproofs-Batch
 (https://github.com/hyperproofs/hyperproofs
  and https://github.com/hyperproofs/gipa-go).
