@@ -5,7 +5,7 @@ from util_G1G2 import G1, G2, pairing, add, multiply, field_element
 
 import random
 import numpy as np
-from polynomials import evaluate_univariate_polynomial_at_x, univariate_polynomial_division, mod_inverse, univariate_minus_polynomials,univariate_multiply_polynomials
+from polynomials import univariate_polynomial_division, mod_inverse, univariate_minus_polynomials,univariate_multiply_polynomials
 import copy
 from utils import gen_variable_power_list, gen_binary_list, gen_rho_plus_1_dim_array, get_power_cycle
 from Lagrange_interpolation import univariate_lagrange_interpolation_coefficients
@@ -54,6 +54,7 @@ G2_STR = b"1 3527010695874666181871391160110601448900299527927752402199086442397
 class Hybrid_mul_polynomial_commitment_scheme:
     def __init__(self, M, n, N, rho, omega_n_s, modulus, vector):
         ''' 构造函数，初始化对象，并且包含了setup函数的功能'''
+        setup_start = time.perf_counter()
         self.M = M
         self.n = n
         self.N = N
@@ -63,7 +64,7 @@ class Hybrid_mul_polynomial_commitment_scheme:
         self.vector = vector
         self.subvector = [vector[i * n : (i + 1) * n] for i in range(M)]
 
-        start = time.perf_counter()
+
         # 秘密陷门，应当销毁 前rho个是tau_s,最后一个是tau_x
         self.alpha_s_x = [random.randint(2, modulus) for _ in range(self.rho +1)]
         # 产生一个二进制二维列表，大小为（M,rho）。里面是[0,M)的二进制分解
@@ -101,8 +102,7 @@ class Hybrid_mul_polynomial_commitment_scheme:
             # 这里的index[-2]指的就是c,index[index[-2]]指的就是k的二进制分解的第c位
             self.pp_PST_pie_pie[index] = multiply(self.pp_PST_pie[*index[:-2],index[-1]],
                                                   mod_inverse(self.alpha_s_x[index[-2]]-(1-index[index[-2]]), self. modulus) % self.modulus)
-        end = time.perf_counter()
-        print("Setup time:", end - start)
+        print("Setup time:", time.perf_counter() - setup_start)
         print("Setup done")
 
     def dist_commit(self):
@@ -111,7 +111,7 @@ class Hybrid_mul_polynomial_commitment_scheme:
         '''
         # 每个证明者先产生子多项式f(x)
         # self.coefficients = [[0]*self.n]*self.M
-        start = time.perf_counter()
+        start_time = time.perf_counter()
         self.coefficients = [[0]*self.n for k in range(self.M)]
         self.C_v = multiply(G1,0)
 
@@ -125,15 +125,53 @@ class Hybrid_mul_polynomial_commitment_scheme:
             for i in range(self.n):
                 C_v_k = add(C_v_k,multiply(self.pp_PST_pie[*index_k,i],self.coefficients[k][i]))
             self.C_v = add(C_v_k,self.C_v)
-        end = time.perf_counter()
-        print("DistCommit time：", (end - start)/self.M)
-        print("Commitment C_v：", self.C_v)
+        print("DistCommit time:", time.perf_counter() - start_time)
+        print("Commitment C_v generated")
+
+    def _lagrange_basis_coefficients(self, j):
+        values = [0] * self.n
+        values[j] = 1
+        return fft(values, self.modulus, self.omega_n_s[1], inv=True)
+
+    def _commit_eq_poly(self, d, coefficients):
+        index_d_binary = self.binary_list[d]
+        commitment = multiply(G1, 0)
+        for i, coefficient in enumerate(coefficients):
+            commitment = add(commitment, multiply(self.pp_PST_pie[*index_d_binary, i], coefficient))
+        return commitment
+
+    def _commit_eq_poly_over_s(self, d, c, coefficients):
+        index_d_binary = self.binary_list[d]
+        commitment = multiply(G1, 0)
+        for i, coefficient in enumerate(coefficients):
+            commitment = add(commitment, multiply(self.pp_PST_pie_pie[*index_d_binary, c, i], coefficient))
+        return commitment
+
+    def _position_update_key(self, u, j, i, lagrange_basis_j):
+        numerator = lagrange_basis_j.copy()
+        if i == j:
+            numerator[0] = (numerator[0] - 1) % self.modulus
+        dividend = numerator[::-1]
+        divisor = [1, -self.omega_n_s[i]]
+        quotient, remainder = univariate_polynomial_division(dividend, divisor, self.modulus)
+        assert remainder == [], "Position update key generation failed."
+        return self._commit_eq_poly(u, quotient[::-1])
+
+    def UpdateCommitment(self, upk_commitment_u_j, delta_v):
+        self.C_v = add(self.C_v, multiply(upk_commitment_u_j, delta_v))
+        return self.C_v
+
+    def UpdateVectorAndPolynomial(self, u, j, delta_v, lagrange_basis_j):
+        self.vector[u * self.n + j] = (self.vector[u * self.n + j] + delta_v) % self.modulus
+        self.subvector[u][j] = (self.subvector[u][j] + delta_v) % self.modulus
+        for i, coefficient in enumerate(lagrange_basis_j):
+            self.coefficients[u][i] = (self.coefficients[u][i] + delta_v * coefficient) % self.modulus
 
     def genAux(self):
         '''
         产生AuxData; size: (M,rho)
         '''
-        start = time.perf_counter()
+        start_time = time.perf_counter()
         self.Aux = np.full((self.M,self.rho), 0, dtype=object)
         for k in range(self.M):
             index_k_binary = self.binary_list[k]
@@ -142,13 +180,11 @@ class Hybrid_mul_polynomial_commitment_scheme:
                 for i in range(self.n):
                     self.Aux[k,c] = add(self.Aux[k,c], multiply(self.pp_PST_pie_pie[*index_k_binary,c,i],self.coefficients[k][i]))
                 self.Aux[k,c] =add(self.Aux[k,c],multiply(G1,mod_inverse(-1,self.modulus)))
-        end = time.perf_counter()
-        print("GenAux time：", (end - start)/self.M)
+        print("GenAux time:", time.perf_counter() - start_time)
         print("GenAux Done")
 
     def genPartialProof(self): #显然每个机器的视角是等价的，工作量
         # 仅仅以P_0为视角 Q_{0,0} = {2,3}, Q_{0,1}={1}, n = 4
-        start = time.perf_counter()
         tmp0 = add(self.Aux[8,0], self.Aux[9,0])
         tmp0 = add(tmp0, self.Aux[10,0])
         tmp0 = add(tmp0, self.Aux[11,0])
@@ -161,15 +197,11 @@ class Hybrid_mul_polynomial_commitment_scheme:
         tmp1 = add(tmp1, self.Aux[7,1])
 
         partialProof_P_0 = [tmp0,tmp1,add(self.Aux[2,2], self.Aux[3,2]), self.Aux[1,3]]
-
-        end = time.perf_counter()
-        print("GenPartialProof time：", (end - start)/self.M)
-        print("GenPartialProof Done.")
-
+        print("GenPartialProof Done")
         return partialProof_P_0
 
-    def genAllPartialProof(self):
-        start = time.perf_counter()
+    def genAllPartialProof(self, report=True):
+        start_time = time.perf_counter()
         self.tree_list = [[0]*(2*self.M) for i in range(self.rho)]
         leaves = [[0]*self.M for i in range(self.rho)]
         for c in range(self.rho):
@@ -192,15 +224,14 @@ class Hybrid_mul_polynomial_commitment_scheme:
                 index += 1-index_k_binary[c]
                 self.partialProofList[k][c] = self.tree_list[c][self.rho - c -1][index].value + self.partialProofList[k][c]
 
-        # print("partialProof_P_0:",self.partialProofList[0])
-        end = time.perf_counter()
-        print("GenAllPartialProof time：", (end - start))
-        print("GenAllPartialProof Done")
+        if report:
+            print("GenAllPartialProof time:", time.perf_counter() - start_time)
+            print("GenAllPartialProof Done")
         return self.partialProofList
 
     def prove(self, d, i):
-        start = time.perf_counter()
-        index_d_binary_P_0 = self.binary_list[0]
+        start_time = time.perf_counter()
+        index_d_binary_P_0 = self.binary_list[d]
         value = self.subvector[d][i]
         # 仅仅以P_0为视角
         # 需要计算多项式q(x) =  (witness_univariate_polynomial - value)/(x-\omega_n^)
@@ -221,13 +252,12 @@ class Hybrid_mul_polynomial_commitment_scheme:
             pi_d_rho_i =add(pi_d_rho_i, multiply(self.pp_PST_pie[*index_d_binary_P_0][i],proof_polynomial[i]))
         # commit_proof_polynomial = self.univariate_commit(proof_polynomial)
         # pi_d_rho_i = add(pi_d_rho_i, multiply(G1,mod_inverse(-1,self.modulus)))
-        end = time.perf_counter()
-        print("GenAllPartialProof time：", (end - start))
+        print("Prove time:", time.perf_counter() - start_time)
         print("Prove done")
-        # print("pi_d_rho_i:",pi_d_rho_i)
         return value, pi_d_rho_i
 
     def verify(self, partialProof,pi_d_rho_i,value,d,i):
+        start_time = time.perf_counter()
         index_binary_P_d = self.binary_list[d]
         verification_key_d = [0] * (self.rho+1)
         for c in range(self.rho):
@@ -235,23 +265,20 @@ class Hybrid_mul_polynomial_commitment_scheme:
         verification_key_d[self.rho] = multiply(G2,(self.alpha_s_x[self.rho]-self.omega_n_s[i])% self.modulus)
         right = pairing(G2,multiply(G1,0))
         # 从这里开始计时
-        start = time.perf_counter()
-        # print("value:",value)
         left =pairing( G2, add(self.C_v,multiply(self.pp_PST_pie[*index_binary_P_d,0], (-value)%self.modulus)))
         for c in range(self.rho):
             right = right * pairing( verification_key_d[c],partialProof[c])
         right = right * pairing( verification_key_d[self.rho],pi_d_rho_i)
         assert left == right, "Verification failed."
-        end = time.perf_counter()
-        print("Verification time:", end - start)
+        print("Verification time:", time.perf_counter() - start_time)
         print("Verification passed")
 
     def BatchProve(self, d, I):
+        start_time = time.perf_counter()
         """
         I是下标列表
         """
         # 把子向量取出来
-        start = time.perf_counter()
         I_list = [0]*len(I)
         for index, value  in enumerate(I):
             I_list[index] = self.subvector[d][value]
@@ -288,8 +315,7 @@ class Hybrid_mul_polynomial_commitment_scheme:
             pi_d_rho_I_batch =add(pi_d_rho_I_batch, multiply(self.pp_PST_pie[*index_k_binary][i],proof_polynomial[i]))
 
         # print("pi_d_rho_I_batch:",pi_d_rho_I_batch)
-        end = time.perf_counter()
-        print("BatchProve time:", end - start)
+        print("BatchProve time:", time.perf_counter() - start_time)
         print("BatchProve Done")
         return I_list, pi_d_rho_I_batch
         # return I_list, pi_d_rho_I_batch
@@ -319,10 +345,10 @@ class Hybrid_mul_polynomial_commitment_scheme:
         print("ProveAll Done")
 
     def BatchVerify(self, partialProof, pi_d_rho_I_batch, value_list, d, I):
+        start_time = time.perf_counter()
         """
         I是下标列表
         """
-
         # 先计算A_I(x)=\prod_{i\in I} (x-\omega_n^i)
         A_I = [1]
         for i in I:
@@ -333,7 +359,6 @@ class Hybrid_mul_polynomial_commitment_scheme:
         A_I = A_I[::-1] # A_I:[-1,1]
         PST_A_I = multiply(G2,0)
 
-        start = time.perf_counter()
         # index_0_binary = self.binary_list[0] # [0, 0, 0, 0]!!!!!!!!注意这里不要动，就是这样的，我们要取到与s无关的量
         for i in range(len(A_I)):
             # PST_A_I =add(PST_A_I, multiply(self.pp_PST[*index_0_binary][i],A_I[i]))
@@ -372,17 +397,12 @@ class Hybrid_mul_polynomial_commitment_scheme:
             right = right * pairing( verification_key_d[c],partialProof[c])
         right = right * pairing( PST_A_I, pi_d_rho_I_batch)
 
-        # print("left:",left)
-        # print("right:",right)
-        # print("Verification right:",right)
         assert left == right, "Batch Verification failed."
-
-        end = time.perf_counter()
-        print("Batch Verification time:",end - start)
-
+        print("Batch Verification time:", time.perf_counter() - start_time)
         print("Batch Verification passed")
 
     def aggregate(self, Single_proof_list, I):
+        start_time = time.perf_counter()
         # setup 阶段，可复用， 因此不算计算时间
         # $A_I^{\prime}(\omega^i)=\sum_{j \in I} \prod_{k \in I,k\neq j}(\omega^i-\omega^k)=\prod_{k \in I,k\neq i}(\omega^i-\omega^k)$
         # c_i = A_I^{\prime}(\omega^i)
@@ -396,76 +416,52 @@ class Hybrid_mul_polynomial_commitment_scheme:
                 else:
                     c_list[index] *= (self.omega_n_s[i]-self.omega_n_s[j])
                     c_list[index] = c_list[index] % self.modulus
-                c_list[index] = mod_inverse(c_list[index],self.modulus) % self.modulus
+            c_list[index] = mod_inverse(c_list[index],self.modulus) % self.modulus
 
 
         # 正式开始聚合证明
-        start = time.perf_counter()
         pi_d_rho_I_Agg = multiply(G1,0)
         for i in range(len(I)):
             pi_d_rho_I_Agg = add(pi_d_rho_I_Agg,multiply(Single_proof_list[i],c_list[i]))
             # pi_d_rho_I_Agg += (c_list[i] * Single_proof_list[i])%self.modulus
-        end = time.perf_counter()
-        print("Aggregate time:", end - start)
+
         # print("理论值",((self.omega_n_s[2]-self.omega_n_s[3])*Single_proof_list[0]+(self.omega_n_s[3]-self.omega_n_s[2]) *Single_proof_list[1])%self.modulus)
+        print("Aggregate time:", time.perf_counter() - start_time)
         return pi_d_rho_I_Agg
 
     def UpdateAuxTree(self,u,j,delta_v,upk_aux_u_j):
         # UpdateSetup(self)
         for c in range(self.rho):
-            self.Aux[u,c] = add(self.Aux[u,c],multiply(upk_aux_u_j[0],delta_v))
+            self.Aux[u,c] = add(self.Aux[u,c],multiply(upk_aux_u_j[c],delta_v))
+        return self.genAllPartialProof(report=False)
         # 更新AUX和Aux树本质上开销是一样的。
 
-    def UpdateProof(self,u,delta_v,pi_u_rho_i, a_i, a_j,i,j):
-        w_i_j = add(multiply(a_i,mod_inverse(self.omega_n_s[i]-self.omega_n_s[j],self.modulus)),
-                    multiply(a_j,mod_inverse(self.omega_n_s[j]-self.omega_n_s[i],self.modulus)))
+    def UpdateProof(self,u,delta_v,pi_u_rho_i, upk_position_u_j,i,j):
+        return add(pi_u_rho_i, multiply(upk_position_u_j[i],delta_v))
 
-        u_i_j = multiply(w_i_j,mod_inverse(self.n* mod_inverse(self.omega_n_s[i],self.modulus),self.modulus))
-
-        new_pi_u_rho_i = add(pi_u_rho_i, multiply(u_i_j,delta_v))
-
-    def UpdateSetup(self,u,j,i):
+    def UpdateSetup(self,u,j,i=None):
         '''
         产生update key
         '''
         # 产生upk_commitment_u_j_G1
-        vector_temp = [0]*self.n
-        vector_temp[j] = 1
-        Lagrange_basis_u = fft(vector_temp, self.modulus, self.omega_n_s[1], inv=True)
-        # 注意！！！！这里Lagrange_basis_u[0]是常数项，从小到大排序
-        upk_commitment_u_j = evaluate_univariate_polynomial_at_x(Lagrange_basis_u,self.alpha_s_x[-1],self.modulus)
-        index_u_binary = self.binary_list[u]
+        lagrange_basis_j = self._lagrange_basis_coefficients(j)
+        upk_commitment_u_j_G1 = self._commit_eq_poly(u, lagrange_basis_j)
+        upk_aux_u_j_G1 = [self._commit_eq_poly_over_s(u, c, lagrange_basis_j) for c in range(self.rho)]
+        upk_position_u_j_G1 = [
+            self._position_update_key(u, j, target_i, lagrange_basis_j)
+            for target_i in range(self.n)
+        ]
+        print("Update key generation done")
+        return upk_commitment_u_j_G1, upk_aux_u_j_G1, upk_position_u_j_G1, lagrange_basis_j
 
-        temp = 1
-        for i in range(len(index_u_binary)-1):
-            if index_u_binary[i]==0:
-                temp *= (1-self.alpha_s_x[i])
-            else:
-                temp *= self.alpha_s_x[i]
-        upk_commitment_u_j *= temp
-        upk_commitment_u_j_G1 = multiply(G1,upk_commitment_u_j)
+        # 注意！！！！这里Lagrange_basis_u[0]是常数项，从小到大排序
 
         # 产生upk_Aux_u_j_G1; size: rho
         # upk_aux指的是update aux 的 key eq(s,k)L_i(x)/(s_c-(1-<k>_c)) ;size (2,2,rho,n)
-        upk_aux_u_j_G1 = [0]*self.rho
-        for c in range(self.rho):
-            upk_aux_u_j_G1[c] = multiply(upk_commitment_u_j_G1,mod_inverse(self.alpha_s_x[c]-(1-index_u_binary[c]), self. modulus) % self.modulus)
 
         # 产生P_u update 元素i的 key:
         # a_i = g^{F(tau_s,\tau_x)/(tau_x-\omega^i)}
-        a_i = multiply(self.C_v, mod_inverse(self.alpha_s_x[-1]-self.omega_n_s[i], self. modulus) % self.modulus)
         # a_j 一样的
-        a_j = multiply(self.C_v, mod_inverse(self.alpha_s_x[-1]-self.omega_n_s[j], self. modulus) % self.modulus)
-
-        shape = tuple([2] * self.rho + [self.rho]+ [self.n])
-        self.upk_aux =  np.full(shape, 0, dtype=object)
-        for index, _ in np.ndenumerate(self.pp_PST_pie_pie):
-            self.upk_aux[index] = multiply(self.pp_PST_pie[*index[:-2],index[-1]],
-                                                  mod_inverse(self.alpha_s_x[index[-2]]-(1-index[index[-2]]), self. modulus) % self.modulus)
-        print("Update key generation done")
-
-
-        return  upk_commitment_u_j_G1, upk_aux_u_j_G1, a_i, a_j
 
 def AggregateTest(example,d, partialProof_P):
     # 这里给出的是单机聚合版本，至于跨subvectors 聚合，我们使用的是这个代码库测试数据:Hyperproofs
@@ -476,7 +472,6 @@ def AggregateTest(example,d, partialProof_P):
     value_list = [0]*len(I)
     for i in range(len(I)):
         value_list[i],Single_proof_list[i] = example.prove(d,I[i])
-        # print("value_list[i],Single_proof_list[i]",value_list[i],Single_proof_list[i])
         example.verify(partialProof_P, Single_proof_list[i], value_list[i], d, I[i])
     pi_d_rho_I_Agg = example.aggregate(Single_proof_list,I) # 这步没问题啊
     # print("!!!!!!!!!!!!!!", pi_d_rho_I_Agg, value_list, d, I)
@@ -484,21 +479,28 @@ def AggregateTest(example,d, partialProof_P):
     example.BatchVerify(partialProof_P, pi_d_rho_I_Agg, value_list, d, I)
 
 
-def UpdateTest(example, u, j ,delta_v):
-    i = 1
-    value, pi_u_rho_i = example.prove(u,i) # 这个是可以提前计算的，不算在计算时间中
-    upk_commitment_u_j, upk_aux_u_j, a_i, a_j = example.UpdateSetup(u,j,i) # 产生upk，实际上它可以被提前产生
-    # upk_aux_u_j 用来更新AUX树，  a_i, a_j 用来更新pi_rho
-    start = time.perf_counter()
-    example.UpdateAuxTree(u,j,delta_v,upk_aux_u_j)
-
-    example.UpdateProof(u,delta_v,pi_u_rho_i, a_i, a_j,i,j)
-    end = time.perf_counter()
-    print("UpdateTime:", end - start)
+def UpdateTest(example, u, j ,delta_v, test_indices=None, verify_updated=True):
+    if test_indices is None:
+        test_indices = sorted(set([0, j, 1 if j != 1 else 2]))
+    old_proofs = {}
+    for i in test_indices:
+        old_proofs[i] = example.prove(u,i)[1]
+    upk_commitment_u_j, upk_aux_u_j, upk_position_u_j, lagrange_basis_j = example.UpdateSetup(u,j)# 这个是可以提前计算的，不算在计算时间中
+    start_time = time.perf_counter()
+    example.UpdateCommitment(upk_commitment_u_j,delta_v)
+    partial_proofs = example.UpdateAuxTree(u,j,delta_v,upk_aux_u_j)
+    example.UpdateVectorAndPolynomial(u,j,delta_v,lagrange_basis_j)
+    updated_proofs = {}
+    for i in test_indices:
+        value = example.subvector[u][i]
+        updated_proofs[i] = example.UpdateProof(u,delta_v,old_proofs[i],upk_position_u_j,i,j)
+    print("UpdateTime:", time.perf_counter() - start_time)
+    if verify_updated:
+        for i in test_indices:
+            value = example.subvector[u][i]
+            example.verify(partial_proofs[u], updated_proofs[i], value, u, i)
     print("Update done!")
-    return
-
-
+    return partial_proofs, updated_proofs
 
 
 

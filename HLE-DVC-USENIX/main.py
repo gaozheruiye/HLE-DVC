@@ -62,7 +62,7 @@ AllPartialProof = example.genAllPartialProof()
 partialProof_P_0 = AllPartialProof[0]
 print("-----------------------------------------------generate single proof----------------------------------------")
 k = 0
-d = k
+d = k # d和k差不多
 i = 1
 value, pi_d_rho_i = example.prove(k,i)
 value = vector[k*n+i]
@@ -72,9 +72,8 @@ example.verify(partialProof_P_0, pi_d_rho_i, value,k,i)
 print("-----------------------------------------------generate Batch proof----------------------------------------")
 I=[0,1]
 value_list, pi_d_rho_I_batch = example.BatchProve(k,I)
-# print("pi_d_rho_I_batch", pi_d_rho_I_batch)
 example.BatchVerify(partialProof_P_0, pi_d_rho_I_batch, value_list, d, I)
 print("-----------------------------------------------Aggregate proof----------------------------------------")
 AggregateTest(example,d, partialProof_P_0)
 print("-----------------------------------------------update proof----------------------------------------")
-UpdateTest(example,u=0,j=0,delta_v=5)# the updated subvector and the element index and v' - v
+UpdateTest(example,u=0,j=0,delta_v=5,test_indices=[1],verify_updated=False)# the updated subvector and the element index and v' - v

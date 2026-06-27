@@ -1,8 +1,8 @@
 import mcl
 from mcl import *
 import mcl.hook
-import mcl_bls2381PCS_group
-from mcl_bls2381PCS_group import AggregateTest, UpdateTest
+import mcl_bls2381PCS_group_Hyperproofs
+from mcl_bls2381PCS_group_Hyperproofs import AggregateTest, UpdateTest
 import random
 import numpy as np
 
@@ -36,12 +36,12 @@ G1_STR = b"1 3685416753713387016781088315183077757961620795782546409894578378688
 G2_STR = b"1 352701069587466618187139116011060144890029952792775240219908644239793785735715026873347600343865175952761926303160 3059144344244213709971259814753781636986470325476647558659373206291635324768958432433509563104347017837885763365758 1985150602287291935568054521177171638300868978215655730859378665066344726373823718423869104263333984641494340347905 927553665492332455747201965776037880757740193453592970025027978793976877002675564980949289727957565575433344219582"
 
 
-rho = 8
+rho = 4
 M = pow(2,rho)
 # 调整M后需要调整genPartialProof()函数或者使用example.genAllPartialProof()然后把对应machine的取出来
 
 # After adjusting M, you need to either modify the genPartialProof() function accordingly, or use example.genAllPartialProof() and extract the one corresponding to the target machine.
-n = 1
+n = 32
 N = M * n
 modulus = 0x73eda753299d7d483339d80809a1d80553bda402fffe5bfeffffffff00000001
 f = PrimeField(modulus)
@@ -53,7 +53,7 @@ omega_n_s = get_power_cycle(omega_n, modulus)
 vector = [random.randint(1, modulus) for i in range(N)]
 # vector = [i+1 for i in range(16)]
 # print(vector_long)
-example = mcl_bls2381PCS_group.Hybrid_mul_polynomial_commitment_scheme(M, n, N, rho,omega_n_s, modulus, vector)
+example = mcl_bls2381PCS_group_Hyperproofs.Hybrid_mul_polynomial_commitment_scheme(M, n, N, rho,omega_n_s, modulus, vector)
 example.dist_commit()
 print("-----------------------------------------------generate partial proofs----------------------------------------")
 example.genAux()

@@ -37,21 +37,33 @@ def univariate_polynomial_division(dividend, divisor, modulus):
     dividend 和 divisor 都是系数列表，list[0]代表最高次幂的系数。
     """
     # 初始化商和余数
-    quotient = []
+    dividend = [x % modulus for x in dividend]
+    divisor = [x % modulus for x in divisor]
+    while dividend and dividend[0] == 0:
+        dividend.pop(0)
+    while divisor and divisor[0] == 0:
+        divisor.pop(0)
+    if not divisor:
+        raise ZeroDivisionError("polynomial division by zero")
+    if len(dividend) < len(divisor):
+        return [], dividend
+
+    quotient = [0] * (len(dividend) - len(divisor) + 1)
     remainder = dividend[:]
+    divisor_lead_inv = mod_inverse(divisor[0], modulus)
     # print("divisor:",divisor)
     # 被除多项式的最高次幂
     while len(remainder) >= len(divisor):
         # 当前项的系数和指数
-        coeff = (remainder[0] * mod_inverse(divisor[0], modulus)) % modulus
+        coeff = (remainder[0] * divisor_lead_inv) % modulus
         power_diff = len(remainder) - len(divisor)
 
         # 当前项的商
         # quotient_term = [0] * power_diff + [coeff]
-        quotient.append(coeff)
+        quotient[len(quotient) - power_diff - 1] = coeff
 
         # 从余数中减去当前商项乘以除多项式
-        subtract_term = [coeff * d for d in divisor] + [0] * power_diff
+        subtract_term = [(coeff * d) % modulus for d in divisor] + [0] * power_diff
         # print("subtract_term",subtract_term)
         remainder = [(a - b) % modulus for a, b in zip(remainder, subtract_term)]
 
@@ -60,9 +72,6 @@ def univariate_polynomial_division(dividend, divisor, modulus):
             remainder.pop(0)
 
     # 处理商多项式
-    while len(quotient) < len(dividend) - len(divisor) + 1:
-        quotient.insert(0, 0)
-
     return quotient, remainder
 
 
